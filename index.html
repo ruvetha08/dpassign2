@@ -137,7 +137,7 @@ svg line{stroke:var(--ink);stroke-width:1.4}
 <text x="292" y="321" style="font-size:10.5px;text-anchor:middle">Subsystem class</text>
 <text x="377" y="306" style="font-size:10.5px;text-anchor:middle">Subsystem class</text>
 </svg>
-<p>This follows the structure used by Refactoring Guru's Facade example. <b>Client</b> talks only to the <b>Facade</b>. A <b>Facade</b> handles one group of related requests (here, <code>watchMovie()</code>); an <b>Additional Facade</b> can be added so the main facade doesn't get cluttered with unrelated features (here, <code>endMovie()</code>). Both facades sit in front of the <b>Complex Subsystem</b>, the set of classes that do the real work. Subsystem classes are unaware of any facade and call each other directly; the client never touches them itself.</p></section>
+<p>This follows the structure for Facade example. <b>Client</b> talks only to the <b>Facade</b>. A <b>Facade</b> handles one group of related requests (here, <code>watchMovie()</code>); an <b>Additional Facade</b> can be added so the main facade doesn't get cluttered with unrelated features (here, <code>endMovie()</code>). Both facades sit in front of the <b>Complex Subsystem</b>, the set of classes that do the real work. Subsystem classes are unaware of any facade and call each other directly; the client never touches them itself.</p></section>
 
 <section class="sec" id="s7"><h2>7. Participants</h2>
 <ul><li><b>Facade</b> (HomeTheaterFacade): knows which subsystem classes do which job. It passes client requests to the right objects in the right order.</li>
