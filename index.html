@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Facade Pattern – Home Theater Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2f6f3;--ink:#14231f;--mute:#5b6b66;--card:#ffffff;--line:#cfdad4;--teal:#0f766e;--amber:#b76e00;--code:#14231f;--codefg:#d7efe6;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1917;--ink:#e6f1ec;--mute:#93a69f;--card:#172622;--line:#2a3d37;--teal:#4fd1c0;--amber:#f0b247;--code:#0a1210;--codefg:#d7efe6}}
+:root[data-theme="dark"]{--bg:#0f1917;--ink:#e6f1ec;--mute:#93a69f;--card:#172622;--line:#2a3d37;--teal:#4fd1c0;--amber:#f0b247;--code:#0a1210;--codefg:#d7efe6}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.55}
+main{max-width:1040px;margin:0 auto;padding:32px 20px 64px}
+h1{font-size:clamp(2rem,5vw,3.4rem);line-height:1.05;margin:0 0 12px;font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.35rem;margin:40px 0 10px;font-weight:600}
+p{max-width:64ch;color:var(--mute);margin:0 0 12px}
+.demo{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px}
+@media(max-width:760px){.demo{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.panel h3{margin:0 0 4px;font-size:1.1rem}
+.panel .sub{font-size:.9rem;color:var(--mute);margin-bottom:14px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-weight:600;border:1.5px solid var(--ink);background:transparent;color:var(--ink);padding:9px 14px;border-radius:8px;cursor:pointer}
+button:hover{background:var(--ink);color:var(--bg)}
+button:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+button.big{background:var(--teal);border-color:var(--teal);color:#fff;font-size:1.05rem;padding:14px 22px}
+button.big:hover{filter:brightness(1.1);background:var(--teal);color:#fff}
+.count{font-size:2.4rem;font-weight:800;line-height:1;margin:16px 0 2px}
+.count small{font-size:.9rem;font-weight:400;color:var(--mute)}
+.log{background:var(--code);color:var(--codefg);border-radius:8px;padding:12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82rem;min-height:150px;max-height:210px;overflow-y:auto;margin-top:12px}
+.log div{padding:1px 0}
+.log .c{color:#7ee0cf}.log .s{color:#f0b247}
+.state{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{font-size:.8rem;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mute)}
+.chip.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.reset{margin-top:20px}
+pre{background:var(--code);color:var(--codefg);padding:16px;border-radius:12px;overflow-x:auto;font-size:.82rem;line-height:1.5}
+.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.roles div{border-left:4px solid var(--teal);padding:4px 12px}
+.roles b{display:block}
+.roles span{color:var(--mute);font-size:.92rem}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 0}
+nav.toc a{font-size:.85rem;color:var(--ink);text-decoration:none;border:1px solid var(--line);padding:3px 10px;border-radius:99px;background:var(--card)}
+nav.toc a:hover{border-color:var(--teal);color:var(--teal)}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 20px 16px;margin-top:16px}
+.sec h2{margin:14px 0 8px}
+.sec p,.sec li{color:var(--ink);max-width:70ch}
+.sec ul{padding-left:20px;margin:6px 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+.good{color:var(--teal);font-weight:600}.bad{color:var(--amber);font-weight:600}
+svg text{fill:var(--ink);font-family:inherit;font-size:13px}
+svg rect{fill:var(--card);stroke:var(--ink);stroke-width:1.4}
+svg line{stroke:var(--ink);stroke-width:1.4}
+</style>
+</head>
+<body>
+<main>
+<h1>Facade Pattern: one button instead of five</h1>
+<p>A home theater has many parts. Without a facade, the client has to know every part and call them in the right order. With a facade, the client calls one method.</p>
+
+<div class="demo">
+  <section class="panel" aria-labelledby="a">
+    <h3 id="a">Without Facade</h3>
+    <div class="sub">Client talks to every subsystem directly.</div>
+    <div class="btns" id="manual"></div>
+    <div class="count"><span id="mc">0</span> <small>client calls</small></div>
+    <div class="log" id="ml" aria-live="polite"></div>
+  </section>
+  <section class="panel" aria-labelledby="b">
+    <h3 id="b">With Facade</h3>
+    <div class="sub">Client talks only to HomeTheaterFacade.</div>
+    <div class="btns">
+      <button class="big" id="watch">watchMovie()</button>
+      <button id="end">endMovie()</button>
+    </div>
+    <div class="count"><span id="fc">0</span> <small>client calls</small></div>
+    <div class="log" id="fl" aria-live="polite"></div>
+  </section>
+</div>
+<div class="state" id="state" aria-label="Subsystem state"></div>
+<button class="reset" id="reset">Reset demo</button>
+
+<nav class="toc" aria-label="Sections"><a href="#s1">1 Name</a><a href="#s2">2 Intent</a><a href="#s3">3 Also Known As</a><a href="#s4">4 Motivation</a><a href="#s5">5 Applicability</a><a href="#s6">6 Structure</a><a href="#s7">7 Participants</a><a href="#s8">8 Collaborations</a><a href="#s9">9 Consequences</a><a href="#s10">10 Implementation</a><a href="#s11">11 Sample Code</a><a href="#s12">12 Known Uses</a><a href="#s13">13 Related Patterns</a></nav>
+
+<section class="sec" id="s1"><h2>1. Pattern Name and Classification</h2>
+<p><b>Name:</b> Facade.</p><p><b>Classification:</b> Object Structural pattern. "Structural" means it is about how classes and objects are put together. "Object" means it works with objects at run time, not with inheritance.</p></section>
+
+<section class="sec" id="s2"><h2>2. Intent</h2>
+<p>Give one simple interface to a group of complex classes. The facade makes the whole group easier to use.</p></section>
+
+<section class="sec" id="s3"><h2>3. Also Known As</h2>
+<p>None. The GoF book lists no other name for Facade.</p></section>
+
+<section class="sec" id="s4"><h2>4. Motivation</h2>
+<p>Think about a home theater. To watch a movie you must dim the lights, lower the screen, switch on the projector, switch on the amplifier, set the volume, and start the player. That is many steps, and the order matters.</p>
+<p>If every client does this by itself, every client must know all these classes. The code gets messy and hard to change. So we add one class, <b>HomeTheaterFacade</b>, with a method <b>watchMovie()</b>. The client calls this one method and the facade does all the steps. This is the same as pressing one "Movie mode" button on a remote.</p></section>
+
+<section class="sec" id="s5"><h2>5. Applicability</h2>
+<p>Use Facade when:</p>
+<ul><li>You want a simple entry point to a complex system.</li>
+<li>There are many dependencies between clients and the subsystem classes, and you want to reduce them.</li>
+<li>You want to organize a system in layers. Each layer gets one facade as its entry point.</li></ul></section>
+
+<section class="sec" id="s6"><h2>6. Structure</h2>
+<svg viewBox="0 0 700 400" width="100%" role="img" aria-label="UML class diagram: Client links to Facade, Facade links to Additional Facade, both depend on a cluster of overlapping Subsystem classes">
+<defs><marker id="fArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink)"/></marker></defs>
+<rect x="10" y="60" width="100" height="44"/><text x="34" y="87">Client</text>
+<line x1="110" y1="82" x2="168" y2="82" marker-end="url(#fArrow)"/>
+<rect x="170" y="20" width="180" height="120"/>
+<text x="255" y="40" style="font-weight:700;text-anchor:middle">Facade</text>
+<line x1="170" y1="50" x2="350" y2="50"/>
+<text x="180" y="68" style="font-size:11px">- linksToSubsystemObjects</text>
+<text x="180" y="83" style="font-size:11px">- optionalAdditionalFacade</text>
+<line x1="170" y1="95" x2="350" y2="95"/>
+<text x="180" y="122" style="font-size:11px">+ subsystemOperation()</text>
+<line x1="350" y1="80" x2="398" y2="80" marker-end="url(#fArrow)"/>
+<rect x="400" y="20" width="190" height="120"/>
+<text x="495" y="40" style="font-weight:700;text-anchor:middle;font-size:13px">Additional Facade</text>
+<line x1="400" y1="50" x2="590" y2="50"/>
+<text x="410" y="68" style="font-size:11px">...</text>
+<line x1="400" y1="95" x2="590" y2="95"/>
+<text x="410" y="122" style="font-size:11px">+ anotherOperation()</text>
+<line x1="205" y1="140" x2="220" y2="238" stroke-dasharray="4,3" marker-end="url(#fArrow)"/>
+<line x1="315" y1="140" x2="300" y2="222" stroke-dasharray="4,3" marker-end="url(#fArrow)"/>
+<line x1="440" y1="140" x2="360" y2="230" stroke-dasharray="4,3" marker-end="url(#fArrow)"/>
+<line x1="485" y1="140" x2="380" y2="278" stroke-dasharray="4,3" marker-end="url(#fArrow)"/>
+<path d="M180 210 C140 210 130 260 165 275 C130 295 145 340 190 345 C195 375 260 385 300 360 C340 385 410 380 420 350 C460 355 480 310 455 285 C480 260 465 215 425 220 C415 185 355 178 320 200 C285 175 220 180 180 210 Z" fill="none" style="stroke-dasharray:5,4"/>
+<rect x="195" y="245" width="95" height="45"/><rect x="230" y="220" width="95" height="45"/><rect x="270" y="260" width="95" height="45"/><rect x="305" y="225" width="95" height="45"/><rect x="245" y="295" width="95" height="45"/><rect x="330" y="280" width="95" height="45"/>
+<text x="242" y="271" style="font-size:10.5px;text-anchor:middle">Subsystem class</text>
+<text x="277" y="246" style="font-size:10.5px;text-anchor:middle">Subsystem class</text>
+<text x="317" y="286" style="font-size:10.5px;text-anchor:middle">Subsystem class</text>
+<text x="352" y="251" style="font-size:10.5px;text-anchor:middle">Subsystem class</text>
+<text x="292" y="321" style="font-size:10.5px;text-anchor:middle">Subsystem class</text>
+<text x="377" y="306" style="font-size:10.5px;text-anchor:middle">Subsystem class</text>
+</svg>
+<p>This follows the structure used by Refactoring Guru's Facade example. <b>Client</b> talks only to the <b>Facade</b>. A <b>Facade</b> handles one group of related requests (here, <code>watchMovie()</code>); an <b>Additional Facade</b> can be added so the main facade doesn't get cluttered with unrelated features (here, <code>endMovie()</code>). Both facades sit in front of the <b>Complex Subsystem</b>, the set of classes that do the real work. Subsystem classes are unaware of any facade and call each other directly; the client never touches them itself.</p></section>
+
+<section class="sec" id="s7"><h2>7. Participants</h2>
+<ul><li><b>Facade</b> (HomeTheaterFacade): knows which subsystem classes do which job. It passes client requests to the right objects in the right order.</li>
+<li><b>Subsystem classes</b> (Lights, Screen, Projector, Amplifier, Player): do the real work. They do not know about the facade.</li>
+<li><b>Client</b>: uses the Facade instead of calling the subsystem classes.</li></ul></section>
+
+<section class="sec" id="s8"><h2>8. Collaborations</h2>
+<ul><li>The client sends a request to the Facade.</li>
+<li>The Facade forwards it to the correct subsystem objects. It may also translate it into calls the subsystem understands.</li>
+<li>Clients that use the Facade do not touch the subsystem objects directly.</li></ul></section>
+
+<section class="sec" id="s9"><h2>9. Consequences</h2>
+<div class="two"><div><p class="good">Benefits</p><ul>
+<li>Clients see fewer objects, so the system is easier to use.</li>
+<li>Loose coupling: subsystem changes do not break clients.</li>
+<li>Does not block direct access. Clients that need more control can still use subsystem classes.</li></ul></div>
+<div><p class="bad">Drawbacks</p><ul>
+<li>The facade can grow into a "god class" that knows too much.</li>
+<li>It adds one more class to maintain.</li>
+<li>It only shows common features. Rare features may still need direct access.</li></ul></div></div></section>
+
+<section class="sec" id="s10"><h2>10. Implementation</h2>
+<ul><li><b>Reduce coupling further:</b> make the Facade an interface or abstract class. Then different implementations can be swapped without changing clients.</li>
+<li><b>Public and private subsystem classes:</b> a subsystem is like a class with its own public and private parts. The Facade is the public interface. Other subsystem classes can be hidden (for example, package-private in Java).</li>
+<li><b>Keep the facade thin:</b> it should only call and coordinate. Real business logic stays in the subsystem classes.</li></ul></section>
+
+<section class="sec" id="s11"><h2>11. Sample Code</h2>
+<pre>class Lights    { void dim(int p){ println("Lights dim to "+p+"%"); }
+                  void on(){ println("Lights on"); } }
+class Screen    { void down(){ println("Screen down"); }
+                  void up(){ println("Screen up"); } }
+class Projector { void on(){ println("Projector on"); }
+                  void off(){ println("Projector off"); } }
+class Amplifier { void on(){ println("Amp on"); }
+                  void off(){ println("Amp off"); }
+                  void setVolume(int v){ println("Volume "+v); } }
+class Player    { void play(String m){ println("Playing "+m); }
+                  void stop(){ println("Stopped"); } }
+
+class HomeTheaterFacade {
+    private Lights l; private Screen s; private Projector p;
+    private Amplifier a; private Player pl;
+
+    HomeTheaterFacade(Lights l, Screen s, Projector p,
+                      Amplifier a, Player pl) {
+        this.l=l; this.s=s; this.p=p; this.a=a; this.pl=pl;
+    }
+    void watchMovie(String m) {
+        l.dim(10); s.down(); p.on();
+        a.on(); a.setVolume(7); pl.play(m);
+    }
+    void endMovie() {
+        pl.stop(); a.off(); p.off(); s.up(); l.on();
+    }
+}
+
+// Client
+HomeTheaterFacade theater = new HomeTheaterFacade(
+    new Lights(), new Screen(), new Projector(),
+    new Amplifier(), new Player());
+theater.watchMovie("Inception");   // 1 call, 6 steps done
+theater.endMovie();</pre></section>
+
+<section class="sec" id="s12"><h2>12. Known Uses</h2>
+<ul><li><b>Compiler subsystem</b> (GoF example): one Compiler class hides the scanner, parser, and code generator.</li>
+<li><b>jQuery:</b> <code>$.ajax()</code> hides the complex XMLHttpRequest details.</li>
+<li><b>SLF4J:</b> a simple logging facade over frameworks like Logback and Log4j.</li>
+<li><b>Spring JdbcTemplate:</b> hides connection, statement, and cleanup code for database access.</li></ul></section>
+
+<section class="sec" id="s13"><h2>13. Related Patterns</h2>
+<ul><li><b>Abstract Factory:</b> can be used with Facade to create subsystem objects without exposing their classes.</li>
+<li><b>Mediator:</b> also hides complexity, but subsystem objects talk to the mediator. In Facade, the subsystem does not know the facade.</li>
+<li><b>Singleton:</b> a Facade is usually needed only once, so it is often a Singleton.</li>
+<li><b>Adapter:</b> changes an existing interface to match what the client expects. Facade creates a new, simpler interface.</li></ul></section>
+</main>
+
+<script>
+const S={Lights:'on',Screen:'up',Projector:'off',Amplifier:'off',Player:'stopped'};
+let mc=0,fc=0;
+const $=id=>document.getElementById(id);
+function logTo(id,cls,t){const l=$(id),d=document.createElement('div');d.className=cls;d.textContent=t;l.appendChild(d);l.scrollTop=l.scrollHeight}
+function chips(){$('state').innerHTML=Object.entries(S).map(([k,v])=>{const on=['dimmed','down','playing'].includes(v)||(k==='Projector'&&v==='on')||(k==='Amplifier'&&v==='on');return `<span class="chip ${on?'on':''}">${k}: ${v}</span>`}).join('')}
+const steps=[
+ ['Lights.dim()',()=>S.Lights='dimmed'],
+ ['Screen.down()',()=>S.Screen='down'],
+ ['Projector.on()',()=>S.Projector='on'],
+ ['Amplifier.on()',()=>S.Amplifier='on'],
+ ['Player.play()',()=>S.Player='playing']];
+steps.forEach(([n,f])=>{const b=document.createElement('button');b.textContent=n;b.onclick=()=>{f();mc++;$('mc').textContent=mc;logTo('ml','c','client → '+n);chips()};$('manual').appendChild(b)});
+$('watch').onclick=()=>{fc++;$('fc').textContent=fc;logTo('fl','c','client → facade.watchMovie()');
+ steps.forEach(([n,f])=>{f();logTo('fl','s','   facade → '+n)});chips()};
+$('end').onclick=()=>{fc++;$('fc').textContent=fc;logTo('fl','c','client → facade.endMovie()');
+ [['Player.stop()',()=>S.Player='stopped'],['Amplifier.off()',()=>S.Amplifier='off'],['Projector.off()',()=>S.Projector='off'],['Screen.up()',()=>S.Screen='up'],['Lights.on()',()=>S.Lights='on']].forEach(([n,f])=>{f();logTo('fl','s','   facade → '+n)});chips()};
+$('reset').onclick=()=>{mc=fc=0;$('mc').textContent=0;$('fc').textContent=0;$('ml').innerHTML='';$('fl').innerHTML='';Object.assign(S,{Lights:'on',Screen:'up',Projector:'off',Amplifier:'off',Player:'stopped'});chips()};
+chips();
+</script>
+</body>
+</html>
